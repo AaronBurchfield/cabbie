@@ -38,7 +38,7 @@ func NewAvailableUpdateMessage() string {
 
 // NewInstallingMessage returns an installing updates message.
 func NewInstallingMessage() string {
-	return "Cabbie is installing new updates."
+	return "Cabbie is installing new Windows updates in the background."
 }
 
 // CleanNotifications deletes any active Cabbie notification messages.
