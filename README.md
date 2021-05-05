@@ -36,7 +36,7 @@ These options can be configured using the registry key at
 | NotifyAvailable   |REG_DWORD     |1                                                           |If enabled Cabbie will send a notification when new required updates are available to be installed.                                         |
 | AukeraEnabled     |REG_DWORD     |0                                                           |Enable Cabbie to use the open source Aukera maintenance window manager.                                                                     |
 | AukeraPort        |REG_DWORD     |9119                                                        |LocalHost port to check against for Aukera maintenance windows.                                                                             |
-| AukeraName        |REG_SZ        |Cabbie                                                      |Aukera maintenance window label to query for to determine if a maintenance window is currently open.                                        |
+| AukeraName        |REG_SZ        |Cabbie                                                      |Aukera maintenance window label to query to determine if a maintenance window is currently open.                                        |
 | ScriptTimeout     |REG_DWORD     |10                                                          |Pre/Post Update script timeout in minutes.                                                                                                  |
 
 ### Pre/Post Update script execution
