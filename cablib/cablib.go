@@ -17,11 +17,7 @@ package cablib
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/google/cabbie/notification"
@@ -32,8 +28,6 @@ import (
 )
 
 const (
-	// S_FALSE is returned by CoInitializeEx if it was already called on this thread.
-	S_FALSE = 0x00000001
 	// S_OK is the return HResult for successful method calls.
 	S_OK = 0x00000000
 	// LogSrcName is the name of event log source.
@@ -57,23 +51,9 @@ const (
 var (
 	now            = time.Now
 	rebootRequired = RebootRequired
-	psPath         = os.ExpandEnv("${windir}\\System32\\WindowsPowerShell\\v1.0\\powershell.exe")
 	// RegPath is the registry path to the cabbie settings.
 	RegPath = `SOFTWARE\Google\Cabbie\`
 )
-
-// StringToSlice converts a comma separated string to a slice.
-func StringToSlice(s string) []string {
-	if strings.TrimSpace(s) == "" {
-		return nil
-	}
-
-	a := strings.Split(s, ",")
-	for i, item := range a {
-		a[i] = strings.TrimSpace(item)
-	}
-	return a
-}
 
 // StringInSlice checks if a slice contains a string.
 func StringInSlice(e string, s []string) bool {
@@ -148,7 +128,7 @@ func cleanRebootValue() error {
 func SystemReboot(t time.Time) error {
 	time.Sleep(time.Until(t))
 
-	notification.NewNotification(SvcName, notification.RebootPopup(2), "rebootPending")
+	notification.RebootPopup(2).Push()
 
 	time.Sleep(2 * time.Minute)
 
@@ -257,22 +237,6 @@ func SetField(obj interface{}, name string, value interface{}) error {
 	return fmt.Errorf("provided value type (%v) didn't match obj field type (%v)", val.Type(), structFieldType)
 }
 
-// PathExists used for determining if given path exists.
-func PathExists(path string) (bool, error) {
-	if path == "" {
-		return false, fmt.Errorf("pathExists: received empty string to test")
-	}
-
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
-}
-
 // SliceContains evaluates if a given value is in the passed slice.
 func SliceContains(slice interface{}, v interface{}) bool {
 	list := reflect.ValueOf(slice)
@@ -282,26 +246,4 @@ func SliceContains(slice interface{}, v interface{}) bool {
 		}
 	}
 	return false
-}
-
-// RunScript will execute a defined PowerShell script with a timeout in minutes.
-func RunScript(name string, timeout uint64) error {
-	var cmd *exec.Cmd
-	cmd = exec.Command(psPath, "-NonInteractive", "-NoProfile", "-NoLogo", "-File", filepath.Join(CabbiePath, name))
-
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("runScript: executing script %q returned error: %v", name, err)
-	}
-
-	timer := time.AfterFunc(time.Duration(timeout)*time.Minute, func() {
-		cmd.Process.Kill()
-	})
-
-	wErr := cmd.Wait()
-
-	if !timer.Stop() {
-		return fmt.Errorf("runScript: time limit reached, killed script %q", name)
-	}
-
-	return wErr
 }
